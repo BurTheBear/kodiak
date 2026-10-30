@@ -249,6 +249,7 @@ function think(purpose) {
     moves: state.history.map((h) => h.uci),
     timeMs: purpose === 'hint' ? HINT_TIME_MS : level.timeMs,
     maxDepth: purpose === 'hint' ? 64 : level.maxDepth,
+    useBook: purpose === 'move',
   });
   $('engineState').textContent = purpose === 'hint' ? 'finding a hint…' : 'searching…';
   updateStatus();
@@ -257,12 +258,13 @@ function think(purpose) {
 
 function onWorkerMessage({ data }) {
   if (data.id !== state.searchId) return;
-  showInfo(data);
+  if (data.book) $('engineState').textContent = 'book move';
+  else showInfo(data);
   if (data.type !== 'bestmove') return;
 
   const purpose = state.pending;
   state.pending = null;
-  $('engineState').textContent = 'idle';
+  if (!data.book) $('engineState').textContent = 'idle';
   const m = data.move ? state.pos.parseUci(data.move) : 0;
   if (purpose === 'hint') {
     if (m) state.hint = [moveFrom(m), moveTo(m)];

@@ -1,5 +1,6 @@
 // Runs the search off the main thread so the board stays responsive.
 import { Position, Search } from './engine.js';
+import { bookMove } from './book.js';
 
 const search = new Search(20);
 
@@ -13,6 +14,11 @@ self.onmessage = ({ data }) => {
     pos.make(m);
   }
   const toUci = (moves) => moves.map((m) => pos.uci(m));
+  const book = data.useBook ? bookMove(data.moves) : null;
+  if (book && pos.parseUci(book)) {
+    self.postMessage({ type: 'bestmove', id: data.id, move: book, book: true, pv: [book] });
+    return;
+  }
   const result = search.search(pos, {
     timeMs: data.timeMs,
     maxDepth: data.maxDepth,

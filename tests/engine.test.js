@@ -92,3 +92,18 @@ test('search leaves the position unchanged', () => {
   new Search(16).search(pos, { timeMs: 300, maxDepth: 64 });
   assert.equal(pos.fen(), before);
 });
+
+test('every opening book move is legal', async () => {
+  const { bookMove } = await import('../src/book.js');
+  const walk = (moves) => {
+    const pos = new Position();
+    for (const uci of moves) pos.make(pos.parseUci(uci));
+    for (let i = 0; i < 4; i++) {
+      const pick = bookMove(moves, () => i / 4);
+      if (!pick) return;
+      assert.ok(pos.parseUci(pick), `${moves.join(' ')} -> ${pick}`);
+      walk([...moves, pick]);
+    }
+  };
+  walk([]);
+});
