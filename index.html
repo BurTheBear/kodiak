@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kodiak Chess</title>
+  <meta name="description" content="Play against Kodiak, a chess engine written from scratch in JavaScript by Atharv Sharma.">
+  <meta property="og:title" content="Kodiak Chess">
+  <meta property="og:description" content="A from-scratch chess engine: alpha-beta search, transposition table, 10M positions per second. Runs in your browser.">
+  <meta property="og:image" content="assets/screenshot.png">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+Symbols+2&family=Space+Grotesk:wght@400;500;700&display=block" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="./" aria-label="Kodiak home">
+      <img src="assets/favicon.svg" alt="" width="32" height="32">
+      <span>Kodiak</span>
+    </a>
+    <p class="tagline">A chess engine written from scratch. It runs entirely in your browser.</p>
+    <a class="source" href="https://github.com/BurTheBear/kodiak">Source on GitHub</a>
+  </header>
+
+  <main class="layout">
+    <section class="board-area" aria-label="Chess board">
+      <div class="player-row opponent">
+        <span class="avatar engine" aria-hidden="true">K</span>
+        <span class="name">Kodiak <small id="levelLabel">· Grizzly</small></span>
+        <span class="thinking" id="thinking" hidden><i></i><i></i><i></i></span>
+      </div>
+      <div class="board-wrap">
+        <div class="evalbar" id="evalbar" aria-hidden="true"><div class="evalfill" id="evalfill"></div><span id="evaltext">0.0</span></div>
+        <div class="board" id="board" role="grid" aria-label="Board"></div>
+        <div class="promo" id="promo" hidden></div>
+        <div class="banner" id="banner" hidden>
+          <strong id="bannerTitle"></strong>
+          <span id="bannerText"></span>
+          <button class="btn primary" id="bannerNew">Play again</button>
+        </div>
+      </div>
+      <div class="player-row you">
+        <span class="avatar" aria-hidden="true">You</span>
+        <span class="name">You <small id="colorLabel">· White</small></span>
+        <span class="status" id="status" role="status">Your move</span>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="card controls">
+        <div class="field">
+          <span class="label">Strength</span>
+          <div class="seg" id="levels">
+            <button data-level="cub">Cub</button>
+            <button data-level="grizzly" class="on">Grizzly</button>
+            <button data-level="kodiak">Kodiak</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="label">Play as</span>
+          <div class="seg" id="colors">
+            <button data-color="0" class="on">White</button>
+            <button data-color="1">Black</button>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn primary" id="newGame">New game</button>
+          <button class="btn" id="undo" title="Take back (U)">Undo</button>
+          <button class="btn" id="hint" title="Hint (H)">Hint</button>
+          <button class="btn" id="flip" title="Flip board (F)">Flip</button>
+        </div>
+      </div>
+
+      <div class="card engine">
+        <div class="card-head">
+          <span class="label">Engine</span>
+          <span class="mono dim" id="engineState">idle</span>
+        </div>
+        <dl class="stats">
+          <div><dt>Depth</dt><dd id="statDepth">–</dd></div>
+          <div><dt>Nodes</dt><dd id="statNodes">–</dd></div>
+          <div><dt>Speed</dt><dd id="statSpeed">–</dd></div>
+          <div><dt>Eval</dt><dd id="statEval">–</dd></div>
+        </dl>
+        <p class="pv mono" id="pv" title="Principal variation: the line Kodiak expects">—</p>
+      </div>
+
+      <div class="card moves-card">
+        <div class="card-head">
+          <span class="label">Moves</span>
+          <button class="link" id="copyPgn">Copy PGN</button>
+        </div>
+        <ol class="moves mono" id="moves"></ol>
+      </div>
+
+      <details class="card how">
+        <summary>How Kodiak thinks</summary>
+        <ol>
+          <li><b>Move generation.</b> A 0x88 board makes off-board checks a single bit test. Verified with perft against published node counts.</li>
+          <li><b>Search.</b> Iterative-deepening alpha-beta with a principal-variation window. Each finished depth seeds the next.</li>
+          <li><b>Pruning.</b> Transposition table, null-move pruning, late-move reductions and mate-distance pruning skip lines that cannot matter.</li>
+          <li><b>Quiescence.</b> At the horizon it keeps searching captures, so it never stops mid-exchange.</li>
+          <li><b>Evaluation.</b> Material and piece-square tables blended from middlegame to endgame, plus pawn structure and rook files.</li>
+        </ol>
+      </details>
+    </aside>
+  </main>
+
+  <footer class="foot">Built by <a href="https://github.com/BurTheBear">Atharv Sharma</a> · MIT license</footer>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

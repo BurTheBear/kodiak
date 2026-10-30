@@ -1,0 +1,16 @@
+{
+  "name": "kodiak-chess",
+  "version": "1.0.0",
+  "description": "A chess engine written from scratch in JavaScript, playable in the browser.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Atharv Sharma",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "bench": "node bench.js",
+    "start": "python3 -m http.server 8000"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
