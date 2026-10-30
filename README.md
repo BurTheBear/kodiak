@@ -1,107 +1,62 @@
-<div align="center">
-
-<img src="assets/favicon.svg" width="72" alt="">
-
 # Kodiak
 
-**A chess engine written from scratch in JavaScript. Play it in your browser.**
-
-[**▶ Play now**](https://burthebear.github.io/kodiak/) &nbsp;·&nbsp; [How it works](#how-it-works) &nbsp;·&nbsp; [Testing](#testing)
+A chess engine I wrote from scratch in JavaScript. You can play it in the browser here: **https://burthebear.github.io/kodiak/**
 
 ![CI](https://github.com/BurTheBear/kodiak/actions/workflows/ci.yml/badge.svg)
-![No dependencies](https://img.shields.io/badge/dependencies-0-2ea44f)
-![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
-<img src="assets/screenshot.png" alt="Kodiak's web interface mid-game, showing the board, live engine statistics and the move list" width="900">
+<img src="assets/screenshot.png" alt="Kodiak's web interface mid-game" width="860">
 
-</div>
-
-## Highlights
-
-- **Every rule of chess**, including castling through check, en passant, under-promotion, threefold repetition, the fifty-move rule and insufficient material.
-- **Verified move generator.** It matches published *perft* node counts on 6 standard test positions, more than 1.6 million positions in total, on every push in CI.
-- **Real search.** It reaches depth 10–14 in two seconds at about 1.7 million positions per second. That uses alpha-beta, a transposition table, null-move pruning and late-move reductions.
-- **Runs off the main thread.** The engine runs in a Web Worker and streams depth, speed, evaluation and its expected line to the UI live.
-- **Zero dependencies and no build step.** About 900 lines of engine code, plus a static site you can host anywhere.
-- **Shareable games.** Each move is stored in the URL, so any position can be sent as a link.
+It knows all the rules, including castling, en passant, promotion, threefold repetition and the fifty-move rule. On my laptop it searches about 2 million positions a second and gets 10 to 14 moves deep in two seconds. There are no dependencies and no build step: the engine is one file, `src/engine.js`, about 900 lines.
 
 ## How it works
 
-```mermaid
-flowchart LR
-    UI["Board UI<br/>(app.js)"] -- "moves so far" --> W["Web Worker<br/>(worker.js)"]
-    W --> S["Search<br/>iterative deepening"]
-    S --> AB["Alpha-beta (PVS)<br/>+ transposition table"]
-    AB --> Q["Quiescence<br/>captures only"]
-    Q --> E["Evaluation<br/>tapered PST + pawns"]
-    AB -. "depth, eval, PV" .-> UI
-```
+The board is a 0x88 array: 128 slots where only 64 are real squares. A square is off the board exactly when `square & 0x88` is non-zero, so checking for edges while generating moves is a single bit test.
 
-| Layer | What it does | Why it matters |
-|---|---|---|
-| **Board** | 0x88 mailbox: 128 squares, where `square & 0x88` is non-zero exactly when a square is off the board. | Edge detection costs one bit test, so move generation needs no lookup tables. |
-| **Hashing** | Zobrist keys are updated incrementally on every move. Two 32-bit halves give a 64-bit key without `BigInt`. | Detects transpositions and repetitions in O(1). |
-| **Search** | Iterative deepening negamax with principal-variation search. Each depth uses the previous depth's best moves first. | Good move ordering lets alpha-beta skip most of the tree. |
-| **Pruning** | Transposition-table cutoffs, null-move pruning, late-move reductions, mate-distance pruning and a check extension. | The search goes deeper in the same time without missing forced lines. |
-| **Move ordering** | TT move first, then captures by MVV-LVA (most valuable victim, least valuable attacker), then killer moves and the history heuristic. | Strong moves are tried first, so cutoffs come early. |
-| **Quiescence** | At the horizon, only captures are searched until the position is quiet. Delta pruning trims hopeless ones. | Avoids the *horizon effect*: stopping mid-exchange and misjudging the position. |
-| **Evaluation** | Material and piece-square tables, blended from middlegame to endgame by remaining material. Adds doubled, isolated and passed pawns, rooks on open files, and the bishop pair. | The king hides in the middlegame and centralises in the endgame. Passed pawns become more valuable as pieces come off. |
+The search is negamax alpha-beta with iterative deepening. It searches depth 1, then 2, then 3, and so on until time runs out. Each pass stores the best move for every position in a transposition table, so the next pass tries the strongest moves first and alpha-beta can cut most of the tree. On top of that:
+
+- **Null-move pruning:** if skipping my turn still leaves me winning, the position is good enough and the search moves on.
+- **Late-move reductions:** quiet moves that the ordering ranked low are searched shallower first, and re-searched only if they look good.
+- **Quiescence search:** at the end of the search, captures keep being played out. Without this the engine would stop in the middle of a trade and badly misjudge the position.
+
+Move ordering is the hash move first, then captures (most valuable victim, least valuable attacker), then "killer" moves that caused cutoffs at the same depth, then a history score.
+
+The evaluation counts material and uses piece-square tables. These are blended from middlegame to endgame values as pieces come off: the king should hide early and walk to the center late. It also knows about doubled, isolated and passed pawns, rooks on open files, and the bishop pair.
+
+The engine runs in a Web Worker, so the board doesn't freeze while it thinks. It sends back its depth, speed, evaluation and expected line after every iteration, which is what the panel on the right shows.
 
 ## Testing
 
 ```bash
-npm test        # perft, rules, notation and search tests (Node 20+)
-npm run bench   # speed benchmark
+npm test
 ```
 
-**Perft** counts every legal move sequence to a fixed depth and compares the total to a known answer. One bug in castling rights, en passant or pin handling changes the count, so this is the standard way to prove a move generator correct.
+The main test is **perft**. It counts every legal move sequence to a fixed depth and compares the total against known answers. If castling rights, en passant or pins are even slightly wrong, the numbers stop matching. These are the positions it checks; the same test runs in CI on every push:
 
-| Position | Depth | Nodes | Status |
-|---|---:|---:|:---:|
-| Start position | 4 | 197,281 | ✅ |
-| "Kiwipete" (castling, pins, en passant) | 3 | 97,862 | ✅ |
-| Rook endgame (discovered checks) | 5 | 674,624 | ✅ |
-| Promotions | 4 | 422,333 | ✅ |
-| Tricky castling | 3 | 62,379 | ✅ |
-| Middlegame | 3 | 89,890 | ✅ |
+| Position | Depth | Nodes |
+|---|---:|---:|
+| Start position | 4 | 197,281 |
+| Kiwipete | 3 | 97,862 |
+| Rook endgame | 5 | 674,624 |
+| Promotions | 4 | 422,333 |
+| Castling edge cases | 3 | 62,379 |
+| Middlegame | 3 | 89,890 |
 
-Other tests cover FEN round-trips, incremental hashing, SAN notation (disambiguation, promotion, `+`/`#`), game-ending rules, and finding mate in 1, mate in 2 and hanging material.
+There are also tests for FEN parsing, hashing, move notation, draws and checkmate, and a few search puzzles (mate in one, mate in two, winning a hanging queen).
 
-**Benchmark** (Node 26, Apple Silicon laptop):
+`npm run bench` prints speed numbers. On an Apple Silicon MacBook with Node 26, move generation runs at about 10 million positions a second.
 
-| | Result |
-|---|---|
-| Perft, start position depth 5 (4.87M nodes) | 0.51 s, **9.6M nodes/s** |
-| Perft, Kiwipete depth 4 (4.09M nodes) | 0.39 s, **10.4M nodes/s** |
-| Search, 2 s per position | depth 10–14, **1.7–2.1M nodes/s** |
+## Running it
 
-## Run it locally
-
-No install needed. Any static file server works:
+It's a static site, so any file server works:
 
 ```bash
-git clone https://github.com/BurTheBear/kodiak.git
-cd kodiak
-python3 -m http.server 8000   # then open http://localhost:8000
+python3 -m http.server 8000
 ```
 
-## Project layout
+Then open http://localhost:8000.
 
-```
-src/engine.js    board, move generation, evaluation, search (the engine)
-src/worker.js    runs the search in a Web Worker
-app.js           board UI: drag-and-drop, promotion, eval bar, move list
-tests/           node:test suite (perft, rules, search)
-bench.js         speed benchmark
-```
+## Things I'd like to add
 
-## What's next
+An opening book, so games aren't always the same. Automatic tuning of the evaluation weights from self-play. UCI support, so it can play other engines.
 
-- [ ] Opening book for more varied games
-- [ ] Bitboard move generation to compare against 0x88
-- [ ] Tune the evaluation weights automatically from self-play games (Texel tuning)
-- [ ] UCI protocol support, so Kodiak can play other engines in tournaments
-
-## License
-
-MIT © Atharv Sharma
+MIT license.

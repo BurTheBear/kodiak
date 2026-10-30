@@ -185,8 +185,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .moves .empty { grid-column: 1 / -1; color: var(--dim); font-family: var(--font); }
 
 .how summary { cursor: pointer; font-weight: 600; }
-.how ol { margin: 12px 0 0; padding-left: 18px; color: var(--dim); font-size: 14px; display: grid; gap: 8px; }
-.how b { color: var(--text); font-weight: 600; }
+.how p { margin: 12px 0 0; color: var(--dim); font-size: 14px; }
 
 .foot { text-align: center; color: var(--dim); font-size: 13px; padding: 0 16px 28px; }
 

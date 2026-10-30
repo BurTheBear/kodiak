@@ -6,7 +6,7 @@
   <title>Kodiak Chess</title>
   <meta name="description" content="Play against Kodiak, a chess engine written from scratch in JavaScript by Atharv Sharma.">
   <meta property="og:title" content="Kodiak Chess">
-  <meta property="og:description" content="A from-scratch chess engine: alpha-beta search, transposition table, 10M positions per second. Runs in your browser.">
+  <meta property="og:description" content="A chess engine written from scratch in JavaScript. Play it in your browser.">
   <meta property="og:image" content="assets/screenshot.png">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,7 +20,7 @@
       <img src="assets/favicon.svg" alt="" width="32" height="32">
       <span>Kodiak</span>
     </a>
-    <p class="tagline">A chess engine written from scratch. It runs entirely in your browser.</p>
+    <p class="tagline">A chess engine I wrote from scratch. It runs in your browser.</p>
     <a class="source" href="https://github.com/BurTheBear/kodiak">Source on GitHub</a>
   </header>
 
@@ -84,7 +84,7 @@
           <div><dt>Speed</dt><dd id="statSpeed">–</dd></div>
           <div><dt>Eval</dt><dd id="statEval">–</dd></div>
         </dl>
-        <p class="pv mono" id="pv" title="Principal variation: the line Kodiak expects">—</p>
+        <p class="pv mono" id="pv" title="The line Kodiak expects">—</p>
       </div>
 
       <div class="card moves-card">
@@ -96,14 +96,10 @@
       </div>
 
       <details class="card how">
-        <summary>How Kodiak thinks</summary>
-        <ol>
-          <li><b>Move generation.</b> A 0x88 board makes off-board checks a single bit test. Verified with perft against published node counts.</li>
-          <li><b>Search.</b> Iterative-deepening alpha-beta with a principal-variation window. Each finished depth seeds the next.</li>
-          <li><b>Pruning.</b> Transposition table, null-move pruning, late-move reductions and mate-distance pruning skip lines that cannot matter.</li>
-          <li><b>Quiescence.</b> At the horizon it keeps searching captures, so it never stops mid-exchange.</li>
-          <li><b>Evaluation.</b> Material and piece-square tables blended from middlegame to endgame, plus pawn structure and rook files.</li>
-        </ol>
+        <summary>How it works</summary>
+        <p>Kodiak is alpha-beta search with iterative deepening. It looks 1 move ahead, then 2, then 3, until its time is up. It remembers the best move from each pass so the next pass can try it first. At the end of the search it keeps playing out captures, so it never stops in the middle of a trade.</p>
+        <p>It scores positions by material and where the pieces stand, and also looks at pawn structure. Everything is written from scratch: about 900 lines, with no libraries.</p>
+        <p><a href="https://github.com/BurTheBear/kodiak#how-it-works">More detail in the README</a></p>
       </details>
     </aside>
   </main>
