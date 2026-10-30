@@ -4,33 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kodiak Chess</title>
-  <meta name="description" content="Play against Kodiak, a chess engine written from scratch in JavaScript by Atharv Sharma.">
+  <meta name="description" content="Play against Kodiak, a chess engine I wrote from scratch in JavaScript.">
   <meta property="og:title" content="Kodiak Chess">
   <meta property="og:description" content="A chess engine written from scratch in JavaScript. Play it in your browser.">
   <meta property="og:image" content="assets/screenshot.png">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/bear.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+Symbols+2&family=Space+Grotesk:wght@400;500;700&display=block" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols+2&display=block" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="top">
-    <a class="brand" href="./" aria-label="Kodiak home">
-      <img src="assets/favicon.svg" alt="" width="32" height="32">
-      <span>Kodiak</span>
-    </a>
-    <p class="tagline">A chess engine I wrote from scratch. It runs in your browser.</p>
-    <a class="source" href="https://github.com/BurTheBear/kodiak">Source on GitHub</a>
+  <header>
+    <h1>Kodiak</h1>
+    <p>A chess engine I wrote from scratch in JavaScript. Everything runs in your browser. <a href="https://github.com/BurTheBear/kodiak">Source code</a></p>
   </header>
 
   <main class="layout">
     <section class="board-area" aria-label="Chess board">
-      <div class="player-row opponent">
-        <span class="avatar engine" aria-hidden="true">K</span>
-        <span class="name">Kodiak <small id="levelLabel">· Grizzly</small></span>
-        <span class="thinking" id="thinking" hidden><i></i><i></i><i></i></span>
-      </div>
+      <div class="player">Kodiak <span id="levelLabel">· Grizzly</span> <span class="thinking" id="thinking" hidden>thinking…</span></div>
       <div class="board-wrap">
         <div class="evalbar" id="evalbar" aria-hidden="true"><div class="evalfill" id="evalfill"></div><span id="evaltext">0.0</span></div>
         <div class="board" id="board" role="grid" aria-label="Board"></div>
@@ -38,73 +30,51 @@
         <div class="banner" id="banner" hidden>
           <strong id="bannerTitle"></strong>
           <span id="bannerText"></span>
-          <button class="btn primary" id="bannerNew">Play again</button>
+          <button id="bannerNew">Play again</button>
         </div>
       </div>
-      <div class="player-row you">
-        <span class="avatar" aria-hidden="true">You</span>
-        <span class="name">You <small id="colorLabel">· White</small></span>
-        <span class="status" id="status" role="status">Your move</span>
-      </div>
+      <div class="player">You <span id="colorLabel">· White</span> <span class="status" id="status" role="status">Your move</span></div>
     </section>
 
-    <aside class="panel">
-      <div class="card controls">
-        <div class="field">
-          <span class="label">Strength</span>
-          <div class="seg" id="levels">
-            <button data-level="cub">Cub</button>
-            <button data-level="grizzly" class="on">Grizzly</button>
-            <button data-level="kodiak">Kodiak</button>
-          </div>
-        </div>
-        <div class="field">
-          <span class="label">Play as</span>
-          <div class="seg" id="colors">
-            <button data-color="0" class="on">White</button>
-            <button data-color="1">Black</button>
-          </div>
-        </div>
-        <div class="actions">
-          <button class="btn primary" id="newGame">New game</button>
-          <button class="btn" id="undo" title="Take back (U)">Undo</button>
-          <button class="btn" id="hint" title="Hint (H)">Hint</button>
-          <button class="btn" id="flip" title="Flip board (F)">Flip</button>
-        </div>
-      </div>
+    <aside class="side">
+      <p>
+        Strength:
+        <span class="group" id="levels">
+          <button data-level="cub">Cub</button><button data-level="grizzly" class="on">Grizzly</button><button data-level="kodiak">Kodiak</button>
+        </span>
+      </p>
+      <p>
+        Play as:
+        <span class="group" id="colors">
+          <button data-color="0" class="on">White</button><button data-color="1">Black</button>
+        </span>
+      </p>
+      <p class="buttons">
+        <button id="newGame">New game</button>
+        <button id="undo" title="Take back (U)">Undo</button>
+        <button id="hint" title="Hint (H)">Hint</button>
+        <button id="flip" title="Flip board (F)">Flip</button>
+      </p>
 
-      <div class="card engine">
-        <div class="card-head">
-          <span class="label">Engine</span>
-          <span class="mono dim" id="engineState">idle</span>
-        </div>
-        <dl class="stats">
-          <div><dt>Depth</dt><dd id="statDepth">–</dd></div>
-          <div><dt>Nodes</dt><dd id="statNodes">–</dd></div>
-          <div><dt>Speed</dt><dd id="statSpeed">–</dd></div>
-          <div><dt>Eval</dt><dd id="statEval">–</dd></div>
-        </dl>
-        <p class="pv mono" id="pv" title="The line Kodiak expects">—</p>
-      </div>
+      <h2>Engine <span class="state" id="engineState">idle</span></h2>
+      <p class="mono engine">
+        depth <b id="statDepth">–</b> &nbsp; nodes <b id="statNodes">–</b> &nbsp; speed <b id="statSpeed">–</b> &nbsp; eval <b id="statEval">–</b>
+      </p>
+      <p class="mono pv" id="pv" title="The line Kodiak expects">—</p>
 
-      <div class="card moves-card">
-        <div class="card-head">
-          <span class="label">Moves</span>
-          <button class="link" id="copyPgn">Copy PGN</button>
-        </div>
-        <ol class="moves mono" id="moves"></ol>
-      </div>
-
-      <details class="card how">
-        <summary>How it works</summary>
-        <p>Kodiak is alpha-beta search with iterative deepening. It looks 1 move ahead, then 2, then 3, until its time is up. It remembers the best move from each pass so the next pass can try it first. At the end of the search it keeps playing out captures, so it never stops in the middle of a trade.</p>
-        <p>It scores positions by material and where the pieces stand, and also looks at pawn structure. Everything is written from scratch: about 900 lines, with no libraries.</p>
-        <p><a href="https://github.com/BurTheBear/kodiak#how-it-works">More detail in the README</a></p>
-      </details>
+      <h2>Moves <button class="link" id="copyPgn">copy PGN</button></h2>
+      <ol class="moves mono" id="moves"></ol>
     </aside>
   </main>
 
-  <footer class="foot">Built by <a href="https://github.com/BurTheBear">Atharv Sharma</a> · MIT license</footer>
+  <section class="about">
+    <h2>How it works</h2>
+    <p>Kodiak looks one move ahead, then two, then three, and keeps going deeper until its time is up (iterative deepening with alpha-beta search). It remembers the best move it found in each position, so every new pass tries the strongest moves first and can skip most of the tree. When the search ends in the middle of a trade, it keeps playing out the captures, so it doesn't misjudge a position halfway through an exchange.</p>
+    <p>It scores positions using material, where each piece stands, and some pawn structure. Strength levels just change how long it thinks: Cub stops at 2 moves deep, Grizzly gets about a second, and Kodiak gets about 2.5 seconds. The details are in the <a href="https://github.com/BurTheBear/kodiak#how-it-works">README</a>.</p>
+    <p class="keys">Keys: F flips the board, U undoes a move, H gives a hint. The URL updates as you play, so you can send someone the game.</p>
+  </section>
+
+  <footer>Made by <a href="https://burthebear.github.io">Atharv Sharma</a>.</footer>
   <script type="module" src="app.js"></script>
 </body>
 </html>
